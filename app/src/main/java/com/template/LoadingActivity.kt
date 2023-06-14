@@ -4,16 +4,21 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class LoadingActivity : AppCompatActivity() {
 
     private lateinit var url: String
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
+
+        analytics = Firebase.analytics
 
         val db = Firebase.firestore
         val docData = db.collection("database").document("check")
