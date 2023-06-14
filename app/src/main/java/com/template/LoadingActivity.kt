@@ -1,9 +1,12 @@
 package com.template
 
-import androidx.appcompat.app.AppCompatActivity
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
@@ -14,6 +17,8 @@ class LoadingActivity : AppCompatActivity() {
 
     private lateinit var url: String
     private lateinit var analytics: FirebaseAnalytics
+
+    private lateinit var singlePermissionPostNotifications: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +52,40 @@ class LoadingActivity : AppCompatActivity() {
             }
             .addOnFailureListener { exception ->
                 Log.d("result_db", "get failed with ", exception)
+            }
+        initRegisterForActivityResult()
+        getPermission()
+
+    }
+
+    private fun getPermission() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                singlePermissionPostNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                singlePermissionPostNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private fun initRegisterForActivityResult() {
+        singlePermissionPostNotifications =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    when {
+                        granted -> {
+                            // уведомления разрешены
+                        }
+
+                        !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                            // пользователь нажал "больше не показывать"
+                        }
+
+                        else -> {
+                            // уведомления запрещены, пользователь отклонил запрос
+                        }
+                    }
+                }
             }
     }
 }
