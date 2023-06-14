@@ -5,22 +5,26 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.template.api.ApiInterface
+import com.template.api.RetrofitClient
 import java.util.TimeZone
 import java.util.UUID
 
 class LoadingActivity : AppCompatActivity() {
 
-    private lateinit var url: String
     private lateinit var token: String
     private lateinit var analytics: FirebaseAnalytics
+    private lateinit var BASE_URL: String
 
     private lateinit var singlePermissionPostNotifications: ActivityResultLauncher<String>
 
@@ -33,6 +37,37 @@ class LoadingActivity : AppCompatActivity() {
         initRegisterForActivityResult()
         getPermission()
 
+    }
+
+    private fun makeRequest(link: String) {
+
+        /*val client = OkHttpClient()
+
+        val request = Request.Builder()
+            .url(link)
+            .get()
+            .build()
+
+        try {
+            val response = client.newCall(request).execute()
+            Log.d("result_dpp", response.toString())
+            // Do something with the response.
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }*/
+
+        val retrofit = RetrofitClient.getInstance(link)
+        val apiInterface = retrofit.create(ApiInterface::class.java)
+
+        lifecycleScope.launchWhenCreated {
+            try {
+                val response = apiInterface.getLink()
+                Log.d("result_dpp", response.code().toString())
+
+            } catch (Ex: Exception) {
+                Log.e("Error", Ex.localizedMessage as String)
+            }
+        }
     }
 
     private fun initFirebase() {
@@ -56,11 +91,11 @@ class LoadingActivity : AppCompatActivity() {
             .addOnSuccessListener { document ->
                 if (document != null) {
                     Log.d("result_db", "DocumentSnapshot data: ${document.data}")
-                    url = document.data?.get("link").toString()
+                    BASE_URL = document.data?.get("link").toString()
                     // webView.loadUrl(url)
-                    Log.d("link", "DocumentSnapshot data: $url")
+                    Log.d("link", "DocumentSnapshot data: $BASE_URL")
 
-                    makeLink(url)
+                    makeLink(BASE_URL)
                     //Toast.makeText(this, url, Toast.LENGTH_SHORT).show()
                 } else {
                     Log.d("result_db", "No such document")
@@ -76,8 +111,10 @@ class LoadingActivity : AppCompatActivity() {
     private fun makeLink(url: String) {
         val userId = UUID.randomUUID().toString()
         val timeZone = TimeZone.getDefault()
-        val link = "$url/?packageid=$packageName&usserid=$userId&getz=$timeZone&getr=utm_source=google-play&utm_medium=organic"
+        val link =
+            "$url/?packageid=$packageName&usserid=$userId&getz=$timeZone&getr=utm_source=google-play&utm_medium=organic"
         Log.d("result_db", link)
+        makeRequest(link)
     }
 
     private fun openMainActivity() {
