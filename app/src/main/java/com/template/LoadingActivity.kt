@@ -1,6 +1,7 @@
 package com.template
 
 import android.Manifest
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -12,10 +13,13 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import java.util.TimeZone
+import java.util.UUID
 
 class LoadingActivity : AppCompatActivity() {
 
     private lateinit var url: String
+    private lateinit var token: String
     private lateinit var analytics: FirebaseAnalytics
 
     private lateinit var singlePermissionPostNotifications: ActivityResultLauncher<String>
@@ -24,6 +28,14 @@ class LoadingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
 
+        initFirebase()
+        getUrl()
+        initRegisterForActivityResult()
+        getPermission()
+
+    }
+
+    private fun initFirebase() {
         analytics = Firebase.analytics
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -31,10 +43,12 @@ class LoadingActivity : AppCompatActivity() {
                 return@addOnCompleteListener
             }
 
-            val token = task.result
+            token = task.result
             Log.d("token", token)
         }
+    }
 
+    private fun getUrl() {
         val db = Firebase.firestore
         val docData = db.collection("database").document("check")
 
@@ -45,17 +59,31 @@ class LoadingActivity : AppCompatActivity() {
                     url = document.data?.get("link").toString()
                     // webView.loadUrl(url)
                     Log.d("link", "DocumentSnapshot data: $url")
+
+                    makeLink(url)
                     //Toast.makeText(this, url, Toast.LENGTH_SHORT).show()
                 } else {
                     Log.d("result_db", "No such document")
+                    openMainActivity()
                 }
             }
             .addOnFailureListener { exception ->
                 Log.d("result_db", "get failed with ", exception)
+                openMainActivity()
             }
-        initRegisterForActivityResult()
-        getPermission()
+    }
 
+    private fun makeLink(url: String) {
+        val userId = UUID.randomUUID().toString()
+        val timeZone = TimeZone.getDefault()
+        val link = "$url/?packageid=$packageName&usserid=$userId&getz=$timeZone&getr=utm_source=google-play&utm_medium=organic"
+        Log.d("result_db", link)
+    }
+
+    private fun openMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     private fun getPermission() {
