@@ -10,6 +10,7 @@ import com.google.firebase.ktx.Firebase
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
+    private lateinit var url: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -22,6 +23,9 @@ class MainActivity : AppCompatActivity() {
             .addOnSuccessListener { document ->
                 if (document != null) {
                     Log.d("result_db", "DocumentSnapshot data: ${document.data}")
+                    url = document.data?.get("link").toString()
+                    webView.loadUrl(url)
+                    Log.d("link", "DocumentSnapshot data: ${url}")
                 } else {
                     Log.d("result_db", "No such document")
                 }
@@ -35,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         // включаем поддержку JavaScript
         webView.getSettings().setJavaScriptEnabled(true)
         // указываем страницу загрузки
-        webView.loadUrl("https://www.google.com/search?q=ntcn&oq=ntcn&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIGCAEQRRg7MgYIAhBFGDvSAQ0xOTA0MDkxMGowajE1qAIAsAIA&sourceid=chrome&ie=UTF-8")
+
     }
 
     override fun onBackPressed() {
