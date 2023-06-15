@@ -24,7 +24,6 @@ class WebActivity : AppCompatActivity() {
             val link = intent.getStringExtra(Constants.LINK)
             initWebView(link!!)
         }
-
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -33,7 +32,7 @@ class WebActivity : AppCompatActivity() {
         webView.settings.javaScriptEnabled = true
         webView.loadUrl(link)
         CookieManager.getInstance().setAcceptCookie(true)
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView,true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
     }
 
     override fun onBackPressed() {

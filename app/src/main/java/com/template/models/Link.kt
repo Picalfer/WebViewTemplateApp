@@ -1,4 +1,4 @@
-package com.example.randomjoke.models
+package com.template.models
 
 import com.google.gson.annotations.SerializedName
 
