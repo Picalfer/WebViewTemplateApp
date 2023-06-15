@@ -41,28 +41,26 @@ class LoadingActivity : AppCompatActivity() {
 
     private fun makeRequest(link: String) {
 
-        /*val client = OkHttpClient()
-
-        val request = Request.Builder()
-            .url(link)
-            .get()
-            .build()
-
-        try {
-            val response = client.newCall(request).execute()
-            Log.d("result_dpp", response.toString())
-            // Do something with the response.
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }*/
-
         val retrofit = RetrofitClient.getInstance(link)
         val apiInterface = retrofit.create(ApiInterface::class.java)
 
         lifecycleScope.launchWhenCreated {
             try {
                 val response = apiInterface.getLink()
-                Log.d("result_dpp", response.code().toString())
+                val code = response.code().toString()
+                when (code) {
+                    "403" -> {
+                        openMainActivity()
+                        val targetLink = response.body()?.link.toString()
+                        Log.i("link 403", targetLink)
+                    }
+                    "200" -> {
+                        val targetLink = response.body()?.link.toString()
+                        Log.i("link 200", targetLink)
+                         // todo запомнить в preferences
+                        openWebActivity(targetLink)
+                    }
+                }
 
             } catch (Ex: Exception) {
                 Log.e("Error", Ex.localizedMessage as String)
@@ -119,6 +117,13 @@ class LoadingActivity : AppCompatActivity() {
 
     private fun openMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+    private fun openWebActivity(link: String) {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("LINK", link)
         startActivity(intent)
         finish()
     }
