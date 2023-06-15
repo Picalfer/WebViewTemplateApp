@@ -13,13 +13,14 @@ class WebActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_web)
 
+        val link = intent.getStringExtra(Constants.LINK)
+        initWebView(link!!)
+    }
+
+    private fun initWebView(link: String) {
         webView = findViewById(R.id.webView)
         webView.webViewClient = MyWebViewClient()
-        // включаем поддержку JavaScript
         webView.getSettings().setJavaScriptEnabled(true)
-        // указываем страницу загрузки
-        // пока находится в LoadingActivity()
-        val link = intent.getStringExtra("LINK") ?: "http//:404"
         webView.loadUrl(link)
     }
 
