@@ -1,4 +1,4 @@
-package com.template
+package com.template.webview
 
 import android.webkit.WebResourceRequest
 import android.webkit.WebView

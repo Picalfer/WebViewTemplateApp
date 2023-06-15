@@ -3,6 +3,7 @@ package com.template
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.webkit.WebView
+import com.template.webview.MyWebViewClient
 
 class WebActivity : AppCompatActivity() {
 
@@ -18,6 +19,8 @@ class WebActivity : AppCompatActivity() {
         webView.getSettings().setJavaScriptEnabled(true)
         // указываем страницу загрузки
         // пока находится в LoadingActivity()
+        val link = intent.getStringExtra("LINK") ?: "http//:404"
+        webView.loadUrl(link)
     }
 
     override fun onBackPressed() {

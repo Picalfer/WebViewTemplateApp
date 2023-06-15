@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +16,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.template.api.ApiInterface
 import com.template.api.RetrofitClient
+import com.template.network.NetworkManager
 import java.util.TimeZone
 import java.util.UUID
 
@@ -32,10 +32,19 @@ class LoadingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
 
-        initFirebase()
-        getUrl()
-        initRegisterForActivityResult()
-        getPermission()
+
+        if (NetworkManager.isNetworkAvailable(this)) {
+            Log.d("network", "yes")
+            initFirebase()
+            getUrl()
+            initRegisterForActivityResult()
+            getPermission()
+        } else {
+            Log.d("network", "no")
+            openMainActivity()
+        }
+
+
 
     }
 
@@ -54,10 +63,11 @@ class LoadingActivity : AppCompatActivity() {
                         val targetLink = response.body()?.link.toString()
                         Log.i("link 403", targetLink)
                     }
+
                     "200" -> {
                         val targetLink = response.body()?.link.toString()
                         Log.i("link 200", targetLink)
-                         // todo запомнить в preferences
+                        // todo запомнить в preferences
                         openWebActivity(targetLink)
                     }
                 }
@@ -122,7 +132,7 @@ class LoadingActivity : AppCompatActivity() {
     }
 
     private fun openWebActivity(link: String) {
-        val intent = Intent(this, MainActivity::class.java)
+        val intent = Intent(this, WebActivity::class.java)
         intent.putExtra("LINK", link)
         startActivity(intent)
         finish()
