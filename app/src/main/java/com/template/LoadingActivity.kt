@@ -18,6 +18,7 @@ import com.template.api.ApiInterface
 import com.template.api.RetrofitClient
 import com.template.network.NetworkManager
 import com.template.storage.AppPreferences
+import java.net.URL
 import java.util.TimeZone
 import java.util.UUID
 
@@ -37,18 +38,19 @@ class LoadingActivity : AppCompatActivity() {
         appPreferences = AppPreferences(this)
 
         if (NetworkManager.isNetworkAvailable(this)) {
-            Log.d("network", "yes")
+            // todo refactor all logs
+            doLog("yes")
             if (appPreferences?.getFirestoreState() == Constants.EMPTY) {
-                Log.d("yes_network", "firestore state is empty, open main activity")
+                doLog("firestore state is empty, open main activity")
                 openMainActivity()
             } else { // делаем это если firestorestate EXIST или null
-                Log.d("yes_network", "firestore state is not empty")
+                doLog( "firestore state is not empty")
                 if (appPreferences?.getLink() != null) {
-                    Log.d("yes_firestore", "we have all we need")
-                    Log.d("test", "open webview, link+ state+ network+")
+                    doLog( "we have all we need")
+                    doLog( "open webview, link+ state+ network+")
                     openWebActivity(appPreferences?.getLink()!!)
                 } else {
-                    Log.d("yes_network", "firestore first open")
+                    doLog( "firestore first open")
                     initFirebase()
                     getDataFromFirestore()
                     initRegisterForActivityResult()
@@ -56,15 +58,19 @@ class LoadingActivity : AppCompatActivity() {
                 }
             }
         } else {
-            Log.d("network", "no")
+            doLog( "no")
             if (appPreferences?.getLink() != null) {
-                Log.d("no_network", "we have link")
+                doLog( "we have link")
                 openWebActivity(appPreferences?.getLink()!!)
             } else {
-                Log.d("no_network", "link absent")
+                doLog("link absent")
                 openMainActivity()
             }
         }
+    }
+
+    private fun doLog(s: String) {
+        Log.d(Constants.TEST, s)
     }
 
     private fun initFirebase() {
@@ -83,23 +89,23 @@ class LoadingActivity : AppCompatActivity() {
         docData.get()
             .addOnSuccessListener { document ->
                 if (document != null) {
-                    Log.d("request firestore rsult", "DocumentSnapshot data: ${document.data}")
+                    doLog( "DocumentSnapshot data: ${document.data}")
                     BASE_URL = document.data?.get("link").toString()
-                    Log.d("link from firestore", BASE_URL)
+                    doLog(BASE_URL)
                     appPreferences?.setFirestoreState(Constants.EXIST)
-                    Log.d("set firestore state to", Constants.EXIST)
+                    doLog(Constants.EXIST)
                     getRequest(BASE_URL)
                 } else {
-                    Log.d("result_db", "No such document")
+                    doLog("No such document")
                     appPreferences?.setFirestoreState(Constants.EMPTY)
-                    Log.d("set firestore state to", Constants.EMPTY)
+                    doLog(Constants.EMPTY)
                     openMainActivity()
                 }
             }
             .addOnFailureListener { exception ->
                 Log.d("result_db", "get failed with ", exception)
                 appPreferences?.setFirestoreState(Constants.EMPTY)
-                Log.d("set firestore state to", Constants.EMPTY)
+                doLog(Constants.EMPTY)
                 openMainActivity()
             }
 
@@ -110,7 +116,7 @@ class LoadingActivity : AppCompatActivity() {
         val timeZone = TimeZone.getDefault()
         val link =
             "$url/?packageid=$packageName&usserid=$userId&getz=$timeZone&getr=utm_source=google-play&utm_medium=organic"
-        Log.d("result_db", link)
+        doLog(link)
         makeRequest(link)
     }
 
@@ -123,28 +129,33 @@ class LoadingActivity : AppCompatActivity() {
             try {
                 val response = apiInterface.getLink()
                 val code = response.code().toString()
+
+                // todo test
+                val text_link = URL(link).readText()
+                doLog(text_link)
+
                 when (code) {
                     "403" -> {
                         val targetLink = response.body()?.link.toString()
-                        Log.i("code 403 (error)", targetLink)
+                        doLog(targetLink)
                         appPreferences?.setFirestoreState(Constants.EMPTY)
-                        Log.d("set firestore state to", Constants.EMPTY)
+                        doLog(Constants.EMPTY)
                         openMainActivity()
                     }
 
                     "200" -> {
                         val targetLink = response.body()?.link.toString()
-                        Log.i("code 200 (link)", targetLink)
+                        doLog(targetLink)
                         appPreferences?.setFirestoreState(Constants.EXIST)
-                        Log.d("set firestore state to", Constants.EXIST)
-                        Log.d("set link to", targetLink)
+                        doLog(Constants.EXIST)
+                        doLog(targetLink)
                         appPreferences?.setLink(targetLink)
                         openWebActivity(targetLink)
                     }
                 }
 
             } catch (Ex: Exception) {
-                Log.e("Error", Ex.localizedMessage as String)
+                doLog(Ex.localizedMessage as String)
             }
         }
     }

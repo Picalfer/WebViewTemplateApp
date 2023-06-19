@@ -5,4 +5,5 @@ object Constants {
     const val STATE = "STATE"
     const val EXIST = "EXIST"
     const val EMPTY = "EMPTY"
+    const val TEST = "TEST"
 }
