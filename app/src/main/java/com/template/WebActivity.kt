@@ -8,7 +8,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebView
-import android.window.OnBackInvokedDispatcher
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.template.webview.MyWebViewClient
@@ -42,7 +41,7 @@ class WebActivity : AppCompatActivity() {
             initWebView(link!!)
         }
 
-        val onBackPressedCallback = object :OnBackPressedCallback(true) {
+        val onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (webView.canGoBack()) {
                     webView.goBack()
@@ -62,7 +61,12 @@ class WebActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun initWebView(link: String) {
         webView.webViewClient = MyWebViewClient()
-        webView.settings.javaScriptEnabled = true
+        webView.settings.apply {
+            allowFileAccess = true
+            javaScriptEnabled = true
+            allowFileAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
+        }
         webView.loadUrl(link)
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
