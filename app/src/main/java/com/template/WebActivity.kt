@@ -3,14 +3,21 @@ package com.template
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebView
+import android.window.OnBackInvokedDispatcher
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.template.webview.MyWebViewClient
+
 
 class WebActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
+    private var webViewBundle: Bundle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,12 +25,38 @@ class WebActivity : AppCompatActivity() {
 
         webView = findViewById(R.id.webView)
 
+        webView.setOnKeyListener(object : View.OnKeyListener {
+            override fun onKey(v: View?, keyCode: Int, event: KeyEvent): Boolean {
+                if (keyCode == KeyEvent.KEYCODE_BACK && event.action == MotionEvent.ACTION_UP && webView.canGoBack()) {
+                    webView.goBack()
+                    return true
+                }
+                return false
+            }
+        })
+
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState)
         } else {
             val link = intent.getStringExtra(Constants.LINK)
             initWebView(link!!)
         }
+
+        val onBackPressedCallback = object :OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                }
+            }
+        }
+
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        webViewBundle = Bundle()
+        webView.saveState(webViewBundle!!)
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -33,12 +66,6 @@ class WebActivity : AppCompatActivity() {
         webView.loadUrl(link)
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
-    }
-
-    override fun onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack()
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {

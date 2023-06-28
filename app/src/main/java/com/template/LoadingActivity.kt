@@ -20,8 +20,6 @@ import com.template.storage.AppPreferences
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Element
-import org.jsoup.select.Elements
 import java.util.TimeZone
 import java.util.UUID
 
@@ -122,25 +120,25 @@ class LoadingActivity : AppCompatActivity() {
     }
 
     private fun makeRequest(link: String) {
-
         GlobalScope.launch {
-            val document = Jsoup
-                .connect("https://ashpit.xyz")
-                .ignoreContentType(true)
-                .get()
+            try {
+                val document = Jsoup
+                    .connect(link)
+                    .ignoreContentType(true)
+                    .get()
 
-            val text = document.text().toString()
-            doLog("Answer from server: $text")
+                val text = document.text().toString()
+                doLog("Answer from server: $text")
 
-            if (text == Constants.ERROR) {
-                appPreferences?.setFirestoreState(EMPTY)
-                doLog("установили firestore state empty")
-                openMainActivity()
-            } else {
                 appPreferences?.setFirestoreState(Constants.EXIST)
-                doLog("установили firestore state exist")
+                doLog("установили firestore state exist (получили ссылку)")
                 appPreferences?.setLink(text)
                 openWebActivity(text)
+            } catch (Ex: Exception) {
+                doLog(Ex.localizedMessage as String)
+                appPreferences?.setFirestoreState(EMPTY)
+                doLog("установили firestore state empty (получили error)")
+                openMainActivity()
             }
         }
 
