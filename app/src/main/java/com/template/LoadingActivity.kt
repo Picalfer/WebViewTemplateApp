@@ -20,7 +20,6 @@ import com.template.storage.AppPreferences
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
-import java.util.TimeZone
 import java.util.UUID
 
 
@@ -112,11 +111,13 @@ class LoadingActivity : AppCompatActivity() {
 
     private fun getRequest(url: String) {
         val userId = UUID.randomUUID().toString()
-        val timeZone = TimeZone.getDefault()
+        val timeZone = "Europe/Moscow"
+        doLog("timeZone: $timeZone")
         val link =
             "$url/?packageid=$packageName&usserid=$userId&getz=$timeZone&getr=utm_source=google-play&utm_medium=organic"
         doLog("наша итоговая ссылка к серверу: $link")
         makeRequest(link)
+
     }
 
     private fun makeRequest(link: String) {

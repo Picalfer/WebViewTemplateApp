@@ -12,7 +12,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.template.webview.MyWebViewClient
 
-
 class WebActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
