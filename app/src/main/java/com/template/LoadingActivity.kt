@@ -113,7 +113,8 @@ class LoadingActivity : AppCompatActivity() {
 
     private fun getRequest(url: String) {
         val userId = UUID.randomUUID().toString()
-        val tz = TimeZone.getDefault().id
+        val tz = TimeZone.getDefault().id // работает только на физическом устройстве
+        // val tz = "Europe/Moscow" // для проверки на виртуальном уст-ве
         doLog("timeZone: $tz")
         val link =
             "$url/?packageid=$packageName&usserid=$userId&getz=$tz&getr=utm_source=google-play&utm_medium=organic"
