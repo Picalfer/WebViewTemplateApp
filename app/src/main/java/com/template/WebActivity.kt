@@ -3,9 +3,6 @@ package com.template
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.PersistableBundle
-import android.view.KeyEvent
-import android.view.MotionEvent
-import android.view.View
 import android.webkit.CookieManager
 import android.webkit.WebView
 import androidx.activity.OnBackPressedCallback
@@ -22,16 +19,6 @@ class WebActivity : AppCompatActivity() {
         setContentView(R.layout.activity_web)
 
         webView = findViewById(R.id.webView)
-
-        webView.setOnKeyListener(object : View.OnKeyListener {
-            override fun onKey(v: View?, keyCode: Int, event: KeyEvent): Boolean {
-                if (keyCode == KeyEvent.KEYCODE_BACK && event.action == MotionEvent.ACTION_UP && webView.canGoBack()) {
-                    webView.goBack()
-                    return true
-                }
-                return false
-            }
-        })
 
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState)

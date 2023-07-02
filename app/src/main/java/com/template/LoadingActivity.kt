@@ -20,7 +20,6 @@ import com.template.storage.AppPreferences
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
-import java.sql.Time
 import java.util.TimeZone
 import java.util.UUID
 
