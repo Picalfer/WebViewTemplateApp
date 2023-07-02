@@ -119,7 +119,6 @@ class LoadingActivity : AppCompatActivity() {
             "$url/?packageid=$packageName&usserid=$userId&getz=$tz&getr=utm_source=google-play&utm_medium=organic"
         doLog("наша итоговая ссылка к серверу: $link")
         makeRequest(link)
-
     }
 
     private fun makeRequest(link: String) {
