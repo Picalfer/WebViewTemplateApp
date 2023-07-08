@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
@@ -36,6 +37,8 @@ class LoadingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
 
+        initFirebase()
+
         analytics = Firebase.analytics
         appPreferences = AppPreferences(this)
 
@@ -51,7 +54,6 @@ class LoadingActivity : AppCompatActivity() {
                     openWebActivity(appPreferences?.getLink()!!)
                 } else {
                     doLog("ссылка содержит null, firestore впервые открываем для получения ссылки")
-                    initFirebase()
                     getDataFromFirestore()
                     initRegisterForActivityResult()
                     getPermission()
@@ -74,11 +76,14 @@ class LoadingActivity : AppCompatActivity() {
     }
 
     private fun initFirebase() {
+        FirebaseApp.initializeApp(this@LoadingActivity)
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 return@addOnCompleteListener
             }
             token = task.result
+            Log.e(TEST, "Token -> $token")
         }
     }
 
@@ -113,7 +118,7 @@ class LoadingActivity : AppCompatActivity() {
     private fun getRequest(url: String) {
         val userId = UUID.randomUUID().toString()
         val tz = TimeZone.getDefault().id // работает только на физическом устройстве
-        // val tz = "Europe/Moscow" // для проверки на виртуальном уст-ве
+        // val tz = "Europe/Moscow" // для проверки на виртуальном уст-ве todo
         doLog("timeZone: $tz")
         val link =
             "$url/?packageid=$packageName&usserid=$userId&getz=$tz&getr=utm_source=google-play&utm_medium=organic"
@@ -128,10 +133,8 @@ class LoadingActivity : AppCompatActivity() {
                     .connect(link)
                     .ignoreContentType(true)
                     .get()
-
                 val text = document.text().toString()
                 doLog("Answer from server: $text")
-
                 appPreferences?.setFirestoreState(Constants.EXIST)
                 doLog("установили firestore state exist (получили ссылку)")
                 appPreferences?.setLink(text)
@@ -143,7 +146,6 @@ class LoadingActivity : AppCompatActivity() {
                 openMainActivity()
             }
         }
-
     }
 
     private fun openMainActivity() {
