@@ -8,12 +8,10 @@ import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.FirebaseMessaging
 import com.template.Constants.EMPTY
 import com.template.Constants.TEST
 import com.template.network.NetworkManager
@@ -27,7 +25,6 @@ import java.util.UUID
 
 class LoadingActivity : AppCompatActivity() {
 
-    private lateinit var token: String
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var BASE_URL: String
     private lateinit var singlePermissionPostNotifications: ActivityResultLauncher<String>
@@ -36,8 +33,6 @@ class LoadingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_loading)
-
-        initFirebase()
 
         analytics = Firebase.analytics
         appPreferences = AppPreferences(this)
@@ -73,18 +68,6 @@ class LoadingActivity : AppCompatActivity() {
 
     private fun doLog(s: String) {
         Log.d(TEST, s)
-    }
-
-    private fun initFirebase() {
-        FirebaseApp.initializeApp(this@LoadingActivity)
-
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                return@addOnCompleteListener
-            }
-            token = task.result
-            Log.e(TEST, "Token -> $token")
-        }
     }
 
     private fun getDataFromFirestore() {
